@@ -16,4 +16,5 @@ MonoBehaviour:
     playerCardsScreenPadding: 0.1
     computerCardsScreenPadding: 0.1
     allDeckScreenPadding: 0.1
+    cardMoveTime: 0.1
     cardsScale: 0.6

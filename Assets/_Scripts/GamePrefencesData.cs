@@ -9,6 +9,7 @@ public struct VisualPrefences
     public float computerCardsScreenPadding;
     public float allDeckScreenPadding;
 
+    public float cardMoveTime;
     public float cardsScale;
 }
 

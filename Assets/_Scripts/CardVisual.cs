@@ -22,6 +22,7 @@ public class CardVisual : MonoBehaviour
         }
         else
             cardNumber.gameObject.SetActive(false);
+        ShowCard(false);
     }
     public void SetOrder(int orderIndex)
     {

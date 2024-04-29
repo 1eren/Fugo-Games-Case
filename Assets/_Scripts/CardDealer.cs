@@ -1,20 +1,23 @@
 using DG.Tweening;
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
 
-public class CardManager : Singleton<CardManager>
+public class CardDealer : Singleton<CardDealer>
 {
     [InfoBox("This list contains a list of manually created scriptable objects.")]
     public List<CardData> cardDatas = new List<CardData>();
+
+    [HideInInspector] public UnityEvent OnCardsDealed = new UnityEvent();
     public GameObject cardPrefab;
 
-    [SerializeField] private GameObject mainPlayer;
-    [SerializeField] private GameObject computerPlayer;
-    [SerializeField] private GameObject groundCardsParent;
-    [SerializeField] private GameObject allDeckParent;
+    [SerializeField] public GameObject mainPlayer;
+    [SerializeField] public GameObject computerPlayer;
+    [SerializeField] public GameObject groundCardsParent;
+    [SerializeField] public GameObject allDeckParent;
 
     [SerializeField][BoxGroup("Visual Settings")] private float cardDealDelay = 0.1f;
     [ReadOnly] public List<GameObject> allDeck = new List<GameObject>();
@@ -25,40 +28,70 @@ public class CardManager : Singleton<CardManager>
 
     private bool isDealedToGround;
 
-    [HideInInspector] public UnityEvent<Card> OnCardPlayed = new UnityEvent<Card>(); 
+    public bool playersCanPlay = false;
+
+    private PlayerBase[] players;
     void Awake()
     {
         gameManager = GameManager.Instance;
         CreateDeck();
-
+        players = FindObjectsOfType<PlayerBase>();
         allDeck.Shuffle();
+
+        allDeck[allDeck.Count - 1].SetActive(true);
+
         SetCardPositions();
     }
 
     private void OnEnable()
     {
         GameManager.Instance?.OnGameStart.AddListener(DealCardsToPlayers);
-        OnCardPlayed.AddListener(MoveCardToGround);
+        CardMoveController.OnCardPlayed.AddListener((x, y) => CheckDeckCount());
     }
     private void OnDisable()
     {
         GameManager.Instance?.OnGameStart.RemoveListener(DealCardsToPlayers);
-        OnCardPlayed.AddListener(MoveCardToGround);
+        CardMoveController.OnCardPlayed.AddListener((x, y) => CheckDeckCount());
     }
+
     public void DealCardsToPlayers()
     {
+        playersCanPlay = false;
+        int dealedIndex = 0;
         for (int i = 0; i < 8; i++)
         {
-            GameObject dealedCard = allDeck[dealedCardIndex];
+            GameObject dealedCard = allDeck[0];
             GameObject dealedPlayer = i % 2 == 0 ? mainPlayer : computerPlayer;
+
+            allDeck.RemoveAt(0);
+
             dealedCard.SetActive(true);
-            if (dealedPlayer != mainPlayer)
+            dealedCard.GetComponent<CardVisual>().ShowCard(false);
+
+         
+            if (dealedCard.TryGetComponent(out Card card))
             {
-                dealedCard.GetComponent<CardVisual>().ShowCard(false);
+                dealedPlayer.GetComponent<PlayerBase>().deck.Add(card);
+                CardOwner cardOwner = dealedPlayer == mainPlayer ? CardOwner.Player : CardOwner.Computer;
+
+                DOVirtual.DelayedCall(i * cardDealDelay, () => card.MoveCard(cardOwner)).OnComplete(() =>
+                {
+                    //check all Cards dealed
+                    if (dealedPlayer == mainPlayer)
+                    {
+                        dealedCard.GetComponent<CardVisual>().ShowCard(true);
+                    }
+                    dealedIndex++;
+                    if (dealedIndex == 7)
+                    {
+                        playersCanPlay = true;
+                        OnCardsDealed.Invoke();
+                    }
+                });
+                card.AssingOwner(cardOwner);
+
             }
-            dealedCardIndex++;
-            dealedCard.transform.DOMove(dealedPlayer.transform.position, 0.1f).SetDelay(cardDealDelay * i).
-                OnComplete(() => dealedCard.transform.parent = dealedPlayer.transform);
+
         }
         if (!isDealedToGround)
             DealCardsToGround();
@@ -66,23 +99,35 @@ public class CardManager : Singleton<CardManager>
     public void DealCardsToGround()
     {
         isDealedToGround = true;
+        int dealedCount = 0;
         for (int i = 0; i < 4; i++)
         {
-            GameObject dealedCard = allDeck[dealedCardIndex];
-            if (i == 3)
-                dealedCard.GetComponent<CardVisual>().ShowCard(true);
-            else
-                dealedCard.GetComponent<CardVisual>().ShowCard(false);
+            GameObject dealedCard = allDeck[0];
+            allDeck.RemoveAt(0);
+
+            dealedCard.GetComponent<CardVisual>().ShowCard(false);
 
             dealedCard.SetActive(true);
-            dealedCardIndex++;
-            DOVirtual.DelayedCall(i * cardDealDelay, () => MoveCardToGround(dealedCard.GetComponent<Card>()));
+
+            if (dealedCard.TryGetComponent(out Card card))
+            {
+                DOVirtual.DelayedCall(i * cardDealDelay, () => card.MoveCard(CardOwner.Ground)).OnComplete(() =>
+                {
+                    dealedCount++;
+                    //show if the last ground card
+                    if (dealedCount == 4)
+                        dealedCard.GetComponent<CardVisual>().ShowCard(true);
+
+                });
+            }
         }
     }
-    private void MoveCardToGround(Card card)
+    private void CheckDeckCount()
     {
-        card.transform.DOMove(groundCardsParent.GetComponent<GroundCardsLayout2D>().GetRandomLayoutPos(),0.1f).
-             OnComplete(() => card.transform.parent = groundCardsParent.transform);
+        if (players.Where(x => x.deck.Count == 0).Count() == players.Count())
+        {
+            DOVirtual.DelayedCall(0.5f, () => DealCardsToPlayers());
+        }
     }
     private void SetCardPositions()
     {
@@ -93,10 +138,6 @@ public class CardManager : Singleton<CardManager>
     }
     private void CreateDeck()
     {
-        //Create a dummy card for allDeckVisual;
-        GameObject allDeckVisual = InstantiateCard(cardDatas[0], allDeckParent.transform);
-        allDeckVisual.GetComponent<CardVisual>().ShowCard(false);
-        allDeckVisual.SetActive(true);
         foreach (var item in cardDatas)
         {
             if (item.cardInfo.cardValue == CardValue.Number)
@@ -116,10 +157,8 @@ public class CardManager : Singleton<CardManager>
             newCard.cardInfo.cardNumber = i;
 
             allDeck.Add(InstantiateCard(newCard, allDeckParent.transform));
-
         }
     }
-
     private GameObject InstantiateCard(CardData cardData, Transform parent)
     {
         GameObject card = Instantiate(cardPrefab, parent);

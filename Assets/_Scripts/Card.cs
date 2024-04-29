@@ -1,20 +1,64 @@
+using DG.Tweening;
 using Sirenix.OdinInspector;
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
+public enum CardOwner
+{
+    Player,
+    Computer,
+    Ground,
+    None,
+}
 public class Card : MonoBehaviour
 {
     [ReadOnly] public CardData cardData;
 
+    [ReadOnly] private CardOwner owner = CardOwner.None;
+    [ReadOnly] public CardOwner Owner => owner;
+
+  
     public void PlayCard()
     {
-        CardManager.Instance.OnCardPlayed.Invoke(this);
+        CardMoveController.OnCardPlayed.Invoke(this, owner);
+        MoveCard(CardOwner.Ground);
+    }
+    public void MoveCard(CardOwner targetOwner)
+    {
+        Transform targetTransform = null;
+        Vector3 targetPos = Vector3.zero;
+        switch (targetOwner)
+        {
+            case CardOwner.Player:
+                targetTransform = CardDealer.Instance.mainPlayer.transform;
+                targetPos = targetTransform.position;
+                break;
+            case CardOwner.Computer:
+                targetTransform = CardDealer.Instance.computerPlayer.transform;
+                targetPos = targetTransform.position;
+                break;
+            case CardOwner.Ground:
+                targetTransform = CardDealer.Instance.groundCardsParent.transform;
+                targetPos = GroundCardsManager.Instance.GetRandomLayoutPos();
+                break;
+            case CardOwner.None:
+                return;
+            default:
+                break;
+        }
+        transform.DOMove(targetPos, GameManager.Instance.gamePrefences.visualPrefences.cardMoveTime).
+             OnComplete(() => transform.parent = targetTransform);
+        AssingOwner(targetOwner);
     }
 
-    private void OnMouseDown()
+
+    public bool IsOwnerPlayer()
     {
-        PlayCard();
+        return owner == CardOwner.Player;
+    }
+
+    public void AssingOwner(CardOwner newOwner)
+    {
+        owner = newOwner;
     }
 }

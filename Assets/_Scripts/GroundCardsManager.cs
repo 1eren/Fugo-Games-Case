@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class GroundCardsLayout2D : MonoBehaviour
+public class GroundCardsManager : Singleton<GroundCardsManager>
 {
     public float randomMaxSpacing = 0.8f; // Spacing Between Cards
 
