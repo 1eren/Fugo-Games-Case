@@ -1,44 +1,15 @@
 using DG.Tweening;
 using Sirenix.OdinInspector;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEditor.Progress;
+using UnityEngine.Events;
 
 
-public enum CardType
-{
-    Heart,
-    Diamond,
-    Club,
-    Spade
-}
-public enum CardValue
-{
-    Number,
-    King,
-    Quenn,
-    Jack,
-}
-[System.Serializable]
-public struct CardInfo
-{
-    [EnumToggleButtons] public CardType cardType;
-    [EnumToggleButtons] public CardValue cardValue;
-    public Sprite cardSprite;
-    public Sprite cardBackSprite;
-    public int cardPoint;
-
-    [HideInInspector] public int cardNumber;
-}
-public class CardManager : MonoBehaviour
+public class CardManager : Singleton<CardManager>
 {
     [InfoBox("This list contains a list of manually created scriptable objects.")]
     public List<CardData> cardDatas = new List<CardData>();
-
     public GameObject cardPrefab;
-
 
     [SerializeField] private GameObject mainPlayer;
     [SerializeField] private GameObject computerPlayer;
@@ -51,6 +22,10 @@ public class CardManager : MonoBehaviour
     private GameManager gameManager;
 
     private int dealedCardIndex = 0;
+
+    private bool isDealedToGround;
+
+    [HideInInspector] public UnityEvent<Card> OnCardPlayed = new UnityEvent<Card>(); 
     void Awake()
     {
         gameManager = GameManager.Instance;
@@ -62,25 +37,52 @@ public class CardManager : MonoBehaviour
 
     private void OnEnable()
     {
-        GameManager.Instance?.OnGameStart.AddListener(DealCards);
+        GameManager.Instance?.OnGameStart.AddListener(DealCardsToPlayers);
+        OnCardPlayed.AddListener(MoveCardToGround);
     }
     private void OnDisable()
     {
-        GameManager.Instance?.OnGameStart.RemoveListener(DealCards);
+        GameManager.Instance?.OnGameStart.RemoveListener(DealCardsToPlayers);
+        OnCardPlayed.AddListener(MoveCardToGround);
     }
-    public void DealCards()
+    public void DealCardsToPlayers()
     {
         for (int i = 0; i < 8; i++)
         {
-            GameObject dealedCard = allDeck[i];
+            GameObject dealedCard = allDeck[dealedCardIndex];
             GameObject dealedPlayer = i % 2 == 0 ? mainPlayer : computerPlayer;
             dealedCard.SetActive(true);
-
+            if (dealedPlayer != mainPlayer)
+            {
+                dealedCard.GetComponent<CardVisual>().ShowCard(false);
+            }
+            dealedCardIndex++;
             dealedCard.transform.DOMove(dealedPlayer.transform.position, 0.1f).SetDelay(cardDealDelay * i).
                 OnComplete(() => dealedCard.transform.parent = dealedPlayer.transform);
-
-
         }
+        if (!isDealedToGround)
+            DealCardsToGround();
+    }
+    public void DealCardsToGround()
+    {
+        isDealedToGround = true;
+        for (int i = 0; i < 4; i++)
+        {
+            GameObject dealedCard = allDeck[dealedCardIndex];
+            if (i == 3)
+                dealedCard.GetComponent<CardVisual>().ShowCard(true);
+            else
+                dealedCard.GetComponent<CardVisual>().ShowCard(false);
+
+            dealedCard.SetActive(true);
+            dealedCardIndex++;
+            DOVirtual.DelayedCall(i * cardDealDelay, () => MoveCardToGround(dealedCard.GetComponent<Card>()));
+        }
+    }
+    private void MoveCardToGround(Card card)
+    {
+        card.transform.DOMove(groundCardsParent.GetComponent<GroundCardsLayout2D>().GetRandomLayoutPos(),0.1f).
+             OnComplete(() => card.transform.parent = groundCardsParent.transform);
     }
     private void SetCardPositions()
     {

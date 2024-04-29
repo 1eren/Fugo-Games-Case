@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class HorizantalLayout2D : MonoBehaviour
 {
-    public float spacing = 0.8f; // Aralıklar arasındaki boşluk
-
+    public float spacing = 0.8f; // Spacing Between Cards
 
     private void OnTransformChildrenChanged()
     {

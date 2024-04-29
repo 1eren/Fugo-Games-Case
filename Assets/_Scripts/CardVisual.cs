@@ -23,17 +23,23 @@ public class CardVisual : MonoBehaviour
         else
             cardNumber.gameObject.SetActive(false);
     }
-
+    public void SetOrder(int orderIndex)
+    {
+        cardSprite.sortingOrder = orderIndex;
+        cardNumber.sortingOrder = orderIndex;
+    }
     public void ShowCard(bool show = true)
     {
         if (show)
         {
             cardSprite.sprite = CardData.cardInfo.cardSprite;
+            if(CardData.cardInfo.cardValue == CardValue.Number)
+                cardNumber.gameObject.SetActive(true);
         }
         else
         {
-            GetComponent<SpriteRenderer>().sortingOrder = 99;
             cardSprite.sprite = CardData.cardInfo.cardBackSprite;
+            cardNumber.gameObject.SetActive(false);
         }
     }
 }

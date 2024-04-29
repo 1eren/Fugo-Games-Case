@@ -7,5 +7,14 @@ using UnityEngine;
 public class Card : MonoBehaviour
 {
     [ReadOnly] public CardData cardData;
- 
+
+    public void PlayCard()
+    {
+        CardManager.Instance.OnCardPlayed.Invoke(this);
+    }
+
+    private void OnMouseDown()
+    {
+        PlayCard();
+    }
 }
