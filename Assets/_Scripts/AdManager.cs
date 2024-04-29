@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace AliceGames.Managers
 {
-    public class AdManager : MonoBehaviourSingleton<AdManager>
+    public class AdManager : Singleton<AdManager>
     {
         public string MaxSdkKey = "ENTER_MAX_SDK_KEY_HERE";
 

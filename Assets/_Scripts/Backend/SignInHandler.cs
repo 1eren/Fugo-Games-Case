@@ -9,7 +9,7 @@ using UnityEngine.UI;
 using Sirenix.OdinInspector;
 using UnityEngine.Networking;
 
-public class SignInHandler : MonoBehaviourSingleton<SignInHandler>
+public class SignInHandler : Singleton<SignInHandler>
 {
 	[ReadOnly] public string loggedUserMail;
 	[ReadOnly] public bool isLoginSuccessful;

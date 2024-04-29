@@ -6,24 +6,27 @@ public class ScreenFitter : MonoBehaviour
 {
     void Start()
     {
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+
+        if (sr != null)
         {
-            transform.localScale = Vector3.one;
+            if (sr == null) return;
 
-            //calculate the screen ratio
-            float screenRatio = (float)Screen.width / (float)Screen.height;
-            float targetRatio = spriteRenderer.sprite.bounds.size.x / spriteRenderer.sprite.bounds.size.y;
+            transform.localScale = new Vector3(1, 1, 1);
 
-            if (targetRatio > screenRatio)
-            {
-                Camera.main.orthographicSize = spriteRenderer.sprite.bounds.size.y / 2;
-            }
-            else
-            {
-                float differenceInSize = screenRatio / targetRatio;
-                Camera.main.orthographicSize = spriteRenderer.sprite.bounds.size.y / 2 * differenceInSize;
-            }
+            float width = sr.sprite.bounds.size.x;
+            float height = sr.sprite.bounds.size.y;
+
+            float worldScreenHeight = Camera.main.orthographicSize * 2f;
+            float worldScreenWidth = worldScreenHeight / Screen.height * Screen.width;
+
+            Vector3 xWidth = transform.localScale;
+            xWidth.x = worldScreenWidth / width;
+            transform.localScale = xWidth;
+
+            Vector3 yHeight = transform.localScale;
+            yHeight.y = worldScreenHeight / height;
+            transform.localScale = yHeight;
         }
         else
         {

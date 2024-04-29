@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class FugoGamesAPI : MonoBehaviourSingleton<FugoGamesAPI> 
+public class FugoGamesAPI : Singleton<FugoGamesAPI> 
 {
 
     public static string jwtKey;
