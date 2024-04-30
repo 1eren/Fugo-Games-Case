@@ -29,9 +29,7 @@ public abstract class PlayerBase : MonoBehaviour, IPlayer
         scoreText.SetText(name + " | {0} |", score);
 
     }
-    protected void OnDisable()
-    {
-    }
+  
     public void DisplayScore()
     {
         scoreText.SetText(name + " | {0} |", score);

@@ -13,7 +13,6 @@ public class ComputerPlayer : PlayerBase
     }
     private void OnDisable()
     {
-        base.OnDisable();
         CardMoveController.OnCardPlayed.RemoveListener((x, y, z) => MakeMove(y));
         CardDealer.Instance?.OnCardsDealed.RemoveListener(() => MakeMove(lastMoveOwner: CardOwner.Player));
     }

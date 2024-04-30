@@ -77,6 +77,8 @@ public class ScoreManager : Singleton<ScoreManager>
         CalculatePlayerScores(player);
         allMoves.Clear();
     }
+
+    //Calculate Player Score with Rule Data
     private void CalculatePlayerScores(PlayerBase player)
     {
         player.matchCount++;

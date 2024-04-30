@@ -23,6 +23,8 @@ public class Card : MonoBehaviour
         CardMoveController.OnCardPlayed.Invoke(this, owner, player);
         MoveCard(CardOwner.Ground);
     }
+
+    //Choose Target Transfrom to move card to deck
     public void MoveCard(CardOwner targetOwner)
     {
         Transform targetTransform = null;

@@ -10,6 +10,8 @@ public class PlayerController : PlayerBase
             return;
         MakeMove();
     }
+
+    //Choose Card With Raycast
     private void MakeMove()
     {
         if (Input.GetMouseButtonDown(0) && isPlayerTurn)

@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
-
 public class CardDealer : Singleton<CardDealer>
 {
     [InfoBox("This list contains a list of manually created scriptable objects.")]
@@ -24,8 +23,6 @@ public class CardDealer : Singleton<CardDealer>
 
     private GameManager gameManager;
 
-    private int dealedCardIndex = 0;
-
     private bool isDealedToGround;
 
     public bool playersCanPlay = false;
@@ -39,6 +36,9 @@ public class CardDealer : Singleton<CardDealer>
         allDeck.Shuffle();
 
         allDeck[allDeck.Count - 1].SetActive(true);
+
+        //Show card back 
+        allDeck[allDeck.Count - 1].GetComponent<CardVisual>().ShowCard(false);
 
         SetCardPositions();
     }
@@ -76,12 +76,13 @@ public class CardDealer : Singleton<CardDealer>
 
                 DOVirtual.DelayedCall(i * cardDealDelay, () => card.MoveCard(cardOwner)).OnComplete(() =>
                 {
-                    //check all Cards dealed
+                    //Show Player Cars
                     if (dealedPlayer == mainPlayer)
                     {
                         dealedCard.GetComponent<CardVisual>().ShowCard(true);
                     }
                     dealedIndex++;
+                    //check all Cards dealed
                     if (dealedIndex == 7)
                     {
                         playersCanPlay = true;
@@ -139,6 +140,7 @@ public class CardDealer : Singleton<CardDealer>
         }
       
     }
+    //Set Card Positions According To Screen Size and Corners
     private void SetCardPositions()
     {
         allDeckParent.transform.position = ScreenPositionUtility.CenterLeft(gameManager.gamePrefences.visualPrefences.allDeckScreenPadding, 0f);
@@ -158,6 +160,7 @@ public class CardDealer : Singleton<CardDealer>
             allDeck.Add(InstantiateCard(item, allDeckParent.transform));
         }
     }
+    //Create Number Cards variations fron 1 to 10
     private void CreateNumberCard(CardData card)
     {
         for (int i = 1; i < 11; i++)
