@@ -23,7 +23,6 @@ public struct CardInfo
     [EnumToggleButtons] public CardValue cardValue;
     public Sprite cardSprite;
     public Sprite cardBackSprite;
-    public int cardPoint;
 
     [HideInInspector] public int cardNumber;
 }

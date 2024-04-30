@@ -46,12 +46,12 @@ public class CardDealer : Singleton<CardDealer>
     private void OnEnable()
     {
         GameManager.Instance?.OnGameStart.AddListener(DealCardsToPlayers);
-        CardMoveController.OnCardPlayed.AddListener((x, y) => CheckDeckCount());
+        CardMoveController.OnCardPlayed.AddListener((x, y,z) => CheckDeckCount());
     }
     private void OnDisable()
     {
         GameManager.Instance?.OnGameStart.RemoveListener(DealCardsToPlayers);
-        CardMoveController.OnCardPlayed.AddListener((x, y) => CheckDeckCount());
+        CardMoveController.OnCardPlayed.AddListener((x, y,z) => CheckDeckCount());
     }
 
     public void DealCardsToPlayers()
@@ -71,7 +71,7 @@ public class CardDealer : Singleton<CardDealer>
          
             if (dealedCard.TryGetComponent(out Card card))
             {
-                dealedPlayer.GetComponent<PlayerBase>().deck.Add(card);
+                dealedPlayer.GetComponent<PlayerBase>().Deck.Add(card);
                 CardOwner cardOwner = dealedPlayer == mainPlayer ? CardOwner.Player : CardOwner.Computer;
 
                 DOVirtual.DelayedCall(i * cardDealDelay, () => card.MoveCard(cardOwner)).OnComplete(() =>
@@ -119,15 +119,25 @@ public class CardDealer : Singleton<CardDealer>
                         dealedCard.GetComponent<CardVisual>().ShowCard(true);
 
                 });
+                GameMove gameMove = new GameMove();
+                gameMove.card = card;
+                gameMove.owner = CardOwner.None;
+                ScoreManager.Instance.allMoves.Add(gameMove);
             }
         }
     }
     private void CheckDeckCount()
     {
-        if (players.Where(x => x.deck.Count == 0).Count() == players.Count())
+        if (allDeck.Count == 0 && players.Where(x => x.Deck.Count == 0).Count() == players.Count())
+        {
+            DOVirtual.DelayedCall(1,()=> GameManager.Instance.EndGame());
+            return;
+        }
+        if (players.Where(x => x.Deck.Count == 0).Count() == players.Count())
         {
             DOVirtual.DelayedCall(0.5f, () => DealCardsToPlayers());
         }
+      
     }
     private void SetCardPositions()
     {

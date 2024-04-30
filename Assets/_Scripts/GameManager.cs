@@ -54,6 +54,7 @@ public class GameManager : Singleton<GameManager>
     {
         if (!isGameStarted)
             return;
+        AdManager.Instance.ShowInterstitial();
         isGameStarted = false;
         OnGameEnd.Invoke();
     }

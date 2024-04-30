@@ -18,9 +18,9 @@ public class Card : MonoBehaviour
     [ReadOnly] public CardOwner Owner => owner;
 
   
-    public void PlayCard()
+    public void PlayCard(PlayerBase player)
     {
-        CardMoveController.OnCardPlayed.Invoke(this, owner);
+        CardMoveController.OnCardPlayed.Invoke(this, owner, player);
         MoveCard(CardOwner.Ground);
     }
     public void MoveCard(CardOwner targetOwner)

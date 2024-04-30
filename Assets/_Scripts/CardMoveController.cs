@@ -6,7 +6,7 @@ using UnityEngine.Events;
 
 public class CardMoveController : Singleton<CardMoveController>
 {
-    [HideInInspector] public static UnityEvent<Card, CardOwner> OnCardPlayed = new UnityEvent<Card, CardOwner>();
+    [HideInInspector] public static UnityEvent<Card, CardOwner, PlayerBase> OnCardPlayed = new UnityEvent<Card, CardOwner, PlayerBase>();
 
     public List<PlayerBase> players = new List<PlayerBase>();
 
@@ -17,17 +17,17 @@ public class CardMoveController : Singleton<CardMoveController>
         playerTurnIndex = Random.Range(0, players.Count);
         ChangeTurn();
 
-        OnCardPlayed.AddListener((x, y) => ChangeTurn());
+        OnCardPlayed.AddListener((x, y,z) => ChangeTurn());
     }
     private void OnDisable()
     {
-        OnCardPlayed.AddListener((x, y) => ChangeTurn());
+        OnCardPlayed.AddListener((x, y,z) => ChangeTurn());
     }
     public void ChangeTurn()
     {
         if (playerTurnIndex == players.Count)
             playerTurnIndex = 0;
-     
+
         players[playerTurnIndex].isPlayerTurn = true;
 
         playerTurnIndex++;

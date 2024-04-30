@@ -23,8 +23,8 @@ public class PlayerController : PlayerBase
                 if (card.IsOwnerPlayer())
                 {
                     isPlayerTurn = false;
-                    deck.Remove(card);
-                    card.PlayCard();
+                    Deck.Remove(card);
+                    card.PlayCard(this);
                 }
             }
         }

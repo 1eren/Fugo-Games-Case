@@ -17,6 +17,11 @@ public class SceneController : Singleton<SceneController>
     {
         OnSceneLoaded.Invoke();
     }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
   
 }
 

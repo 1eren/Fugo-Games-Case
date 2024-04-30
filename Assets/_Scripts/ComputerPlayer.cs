@@ -7,19 +7,20 @@ public class ComputerPlayer : PlayerBase
 {
     private void OnEnable()
     {
-        CardMoveController.OnCardPlayed.AddListener(MakeMove);
-        CardDealer.Instance?.OnCardsDealed.AddListener(() => MakeMove(null, lastMoveOwner: CardOwner.Player));
+        base.OnEnable();
+        CardMoveController.OnCardPlayed.AddListener((x, y, z) => MakeMove(y));
+        CardDealer.Instance?.OnCardsDealed.AddListener(() => MakeMove(lastMoveOwner: CardOwner.Player));
     }
     private void OnDisable()
     {
-        CardMoveController.OnCardPlayed.RemoveListener(MakeMove);
-        CardDealer.Instance?.OnCardsDealed.RemoveListener(() => MakeMove(null, lastMoveOwner: CardOwner.Player));
-
+        base.OnDisable();
+        CardMoveController.OnCardPlayed.RemoveListener((x, y, z) => MakeMove(y));
+        CardDealer.Instance?.OnCardsDealed.RemoveListener(() => MakeMove(lastMoveOwner: CardOwner.Player));
     }
 
-    private void MakeMove(Card lastPlayedCard, CardOwner lastMoveOwner)
+    private void MakeMove(CardOwner lastMoveOwner)
     {
-        if (deck.Count == 0)
+        if (Deck.Count == 0)
             return;
 
         if (!isPlayerTurn && CardDealer.Instance.playersCanPlay)
@@ -27,11 +28,11 @@ public class ComputerPlayer : PlayerBase
         isPlayerTurn = false;
         if (lastMoveOwner == CardOwner.Player)
         {
-            DOVirtual.DelayedCall(Random.Range(0.2f, 0.5f), () =>
+            DOVirtual.DelayedCall(Random.Range(0.3f, 0.5f), () =>
             {
-                Card card = deck[0];
-                deck.Remove(card);
-                card.PlayCard();
+                Card card = Deck[Random.Range(0, Deck.Count - 1)];
+                Deck.Remove(card);
+                card.PlayCard(this);
                 if (card.TryGetComponent(out CardVisual visual))
                 {
                     visual.ShowCard();
